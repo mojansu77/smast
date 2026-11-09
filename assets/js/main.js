@@ -1,274 +1,356 @@
-/* main.js - Logic Frontend & Interaktivitas PortalRejo */
+/**
+ * main.js — JavaScript Utama SMA Negeri 1 Kota Kediri (SMAST)
+ * Covers: Light/Dark Mode Toggle, Navbar, Hero Slideshow, Stats Count-Up, Ticker, Scroll Reveal,
+ *         Lightbox, Gallery Filter, Contact Validation, Page Transitions
+ */
 
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // ==========================================
-    // 1. Scroll Effect on Header
-    // ==========================================
-    const header = document.querySelector('header');
-    
-    function checkScroll() {
-        if (window.scrollY > 50) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
-    }
-    
-    window.addEventListener('scroll', checkScroll);
-    checkScroll(); // check on init
+document.addEventListener('DOMContentLoaded', function () {
 
-    // ==========================================
-    // 2. Mobile Menu (Hamburger)
-    // ==========================================
-    const hamburger = document.querySelector('.hamburger');
-    const navMenu = document.querySelector('.nav-menu');
-    
-    if (hamburger && navMenu) {
-        hamburger.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
-            
-            // Toggle hamburger icon animation
-            const spans = hamburger.querySelectorAll('span');
-            if (navMenu.classList.contains('active')) {
-                spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
-                spans[1].style.opacity = '0';
-                spans[2].style.transform = 'rotate(-45deg) translate(6px, -6px)';
+    // ─── 0. LIGHT / DARK MODE TOGGLE ─────────────────────────────────────────
+    var themeToggleBtns = [
+        document.getElementById('theme-toggle'),
+        document.getElementById('theme-toggle-mobile')
+    ];
+
+    function updateThemeIcons(theme) {
+        var isDark = (theme === 'dark');
+        var icons = document.querySelectorAll('#theme-icon, #theme-icon-mobile');
+        icons.forEach(function (ic) {
+            if (isDark) {
+                ic.classList.remove('fa-moon');
+                ic.classList.add('fa-sun');
             } else {
-                spans[0].style.transform = 'none';
-                spans[1].style.opacity = '1';
-                spans[2].style.transform = 'none';
+                ic.classList.remove('fa-sun');
+                ic.classList.add('fa-moon');
             }
         });
+    }
 
-        // Close menu when clicking nav links
-        const navLinks = document.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
-                const spans = hamburger.querySelectorAll('span');
-                spans[0].style.transform = 'none';
-                spans[1].style.opacity = '1';
-                spans[2].style.transform = 'none';
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        localStorage.setItem('smast-theme', theme);
+        updateThemeIcons(theme);
+    }
+
+    // Init theme icon state on load
+    var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    updateThemeIcons(currentTheme);
+
+    themeToggleBtns.forEach(function (btn) {
+        if (!btn) return;
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            var active = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            setTheme(active);
+        });
+    });
+
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+            if (!localStorage.getItem('smast-theme')) {
+                setTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+    }
+
+    // ─── 1. NAVBAR SCROLL ──────────────────────────────────────────────────
+    var navbar = document.getElementById('smast-navbar');
+    if (navbar) {
+        window.addEventListener('scroll', function () {
+            navbar.classList.toggle('scrolled', window.scrollY > 50);
+        }, { passive: true });
+        navbar.classList.toggle('scrolled', window.scrollY > 50);
+    }
+
+    // ─── 2. HAMBURGER MOBILE MENU ───────────────────────────────────────────
+    var ham = document.getElementById('smast-hamburger');
+    var mob = document.getElementById('smast-mobile-nav');
+    if (ham && mob) {
+        ham.addEventListener('click', function () {
+            var open = ham.classList.toggle('open');
+            mob.classList.toggle('open', open);
+            mob.setAttribute('aria-hidden', String(!open));
+            ham.setAttribute('aria-expanded', String(open));
+            document.body.style.overflow = open ? 'hidden' : '';
+        });
+        document.addEventListener('click', function (e) {
+            if (!ham.contains(e.target) && !mob.contains(e.target) && mob.classList.contains('open')) {
+                ham.classList.remove('open');
+                mob.classList.remove('open');
+                mob.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+            }
+        });
+        mob.querySelectorAll('a').forEach(function (a) {
+            a.addEventListener('click', function () {
+                ham.classList.remove('open');
+                mob.classList.remove('open');
+                document.body.style.overflow = '';
             });
         });
     }
 
-    // ==========================================
-    // 3. Dark Mode Toggle
-    // ==========================================
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    const htmlElement = document.documentElement;
-    
-    // Check local storage or system preference
-    const savedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-        htmlElement.setAttribute('data-theme', 'dark');
-        updateToggleIcon('dark');
-    } else {
-        htmlElement.setAttribute('data-theme', 'light');
-        updateToggleIcon('light');
+    // ─── 2.1 SEARCH MODAL DIALOG ────────────────────────────────────────────
+    var searchTrigger = document.getElementById('search-modal-trigger');
+    var searchModal   = document.getElementById('smast-search-modal');
+    var searchClose   = document.getElementById('search-close-btn');
+    var searchBackdrop= document.getElementById('smast-search-modal-close');
+
+    function openSearchModal() {
+        if (!searchModal) return;
+        searchModal.classList.add('open');
+        searchModal.setAttribute('aria-hidden', 'false');
+        var input = searchModal.querySelector('input[type="search"]');
+        if (input) setTimeout(function () { input.focus(); }, 100);
+        document.body.style.overflow = 'hidden';
     }
-    
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', function() {
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            let newTheme = 'light';
-            
-            if (currentTheme === 'light') {
-                newTheme = 'dark';
-            }
-            
-            htmlElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateToggleIcon(newTheme);
+
+    function closeSearchModal() {
+        if (!searchModal) return;
+        searchModal.classList.remove('open');
+        searchModal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    if (searchTrigger) searchTrigger.addEventListener('click', openSearchModal);
+    if (searchClose) searchClose.addEventListener('click', closeSearchModal);
+    if (searchBackdrop) searchBackdrop.addEventListener('click', closeSearchModal);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && searchModal && searchModal.classList.contains('open')) {
+            closeSearchModal();
+        }
+    });
+
+    // ─── 3. HERO SLIDESHOW (Multi-Slide Carousel) ─────────────────────────
+    var heroSlides = document.querySelectorAll('.smast-hero-slide');
+    var heroDots   = document.querySelectorAll('.smast-hero-dot');
+    var heroPrev   = document.getElementById('hero-prev-btn');
+    var heroNext   = document.getElementById('hero-next-btn');
+    var heroSlider = document.getElementById('hero');
+    var curSlide   = 0;
+    var slideTimer = null;
+    var totalSlides = heroSlides.length;
+
+    function goToSlide(idx) {
+        if (totalSlides === 0) return;
+        if (idx < 0) idx = totalSlides - 1;
+        if (idx >= totalSlides) idx = 0;
+
+        heroSlides.forEach(function (slide, i) {
+            slide.classList.toggle('active', i === idx);
         });
+        heroDots.forEach(function (dot, i) {
+            dot.classList.toggle('active', i === idx);
+        });
+        curSlide = idx;
     }
-    
-    function updateToggleIcon(theme) {
-        if (!themeToggleBtn) return;
-        const icon = themeToggleBtn.querySelector('i');
-        if (!icon) return;
-        
-        if (theme === 'dark') {
-            icon.className = 'fas fa-sun';
-        } else {
-            icon.className = 'fas fa-moon';
+
+    function startSlideTimer() {
+        if (totalSlides <= 1) return;
+        clearInterval(slideTimer);
+        slideTimer = setInterval(function () {
+            goToSlide(curSlide + 1);
+        }, 6000);
+    }
+
+    function stopSlideTimer() {
+        clearInterval(slideTimer);
+    }
+
+    if (totalSlides > 0) {
+        goToSlide(0);
+        startSlideTimer();
+
+        if (heroPrev) {
+            heroPrev.addEventListener('click', function (e) {
+                e.preventDefault();
+                goToSlide(curSlide - 1);
+                startSlideTimer();
+            });
+        }
+
+        if (heroNext) {
+            heroNext.addEventListener('click', function (e) {
+                e.preventDefault();
+                goToSlide(curSlide + 1);
+                startSlideTimer();
+            });
+        }
+
+        heroDots.forEach(function (dot, i) {
+            dot.addEventListener('click', function (e) {
+                e.preventDefault();
+                goToSlide(i);
+                startSlideTimer();
+            });
+        });
+
+        if (heroSlider) {
+            heroSlider.addEventListener('mouseenter', stopSlideTimer);
+            heroSlider.addEventListener('mouseleave', startSlideTimer);
         }
     }
 
-    // ==========================================
-    // 4. Gallery Filtering
-    // ==========================================
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    const galleryItems = document.querySelectorAll('.gallery-item');
-    
-    if (filterButtons.length > 0 && galleryItems.length > 0) {
-        filterButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Remove active class from all buttons
-                filterButtons.forEach(btn => btn.classList.remove('active'));
-                // Add active class to clicked button
+    // ─── 4. STATS COUNT-UP ─────────────────────────────────────────────────
+    var statEls = document.querySelectorAll('.smast-stat-number[data-target]');
+
+    function countUp(el) {
+        var target   = parseInt(el.getAttribute('data-target'), 10);
+        var suffix   = el.getAttribute('data-suffix')  || '';
+        var prefix   = el.getAttribute('data-prefix')  || '';
+        var duration = 1800;
+        var start    = performance.now();
+        (function step(now) {
+            var p = Math.min((now - start) / duration, 1);
+            var eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = prefix + Math.round(eased * target).toLocaleString('id-ID') + suffix;
+            if (p < 1) requestAnimationFrame(step);
+        })(start);
+    }
+
+    if (statEls.length && 'IntersectionObserver' in window) {
+        var so = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+                if (e.isIntersecting) { countUp(e.target); so.unobserve(e.target); }
+            });
+        }, { threshold: 0.4 });
+        statEls.forEach(function (el) { so.observe(el); });
+    } else {
+        statEls.forEach(function (el) {
+            el.textContent = (el.getAttribute('data-prefix') || '') +
+                parseInt(el.getAttribute('data-target') || 0).toLocaleString('id-ID') +
+                (el.getAttribute('data-suffix') || '');
+        });
+    }
+
+    // ─── 5. SCROLL REVEAL ──────────────────────────────────────────────────
+    var revEls = document.querySelectorAll('.smast-reveal, .smast-reveal-left, .smast-reveal-right');
+    if (revEls.length && 'IntersectionObserver' in window) {
+        var ro = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+                if (e.isIntersecting) { e.target.classList.add('active'); ro.unobserve(e.target); }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -48px 0px' });
+        revEls.forEach(function (el) { ro.observe(el); });
+    } else {
+        revEls.forEach(function (el) { el.classList.add('active'); });
+    }
+
+    // ─── 6. SMOOTH SCROLL FOR ANCHOR LINKS ─────────────────────────────────
+    document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+            var href = this.getAttribute('href');
+            if (href === '#') return;
+            var target = document.querySelector(href);
+            if (target) {
+                e.preventDefault();
+                var offset = navbar ? navbar.offsetHeight + 16 : 80;
+                window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' });
+            }
+        });
+    });
+
+    // ─── 7. BCACHE & NAVIGATION SAFETY (Mencegah Blank saat Back) ──────────
+    window.addEventListener('pageshow', function (event) {
+        document.body.classList.remove('fade-out');
+        document.body.style.opacity = '1';
+        document.body.style.overflow = '';
+    });
+
+    // ─── 8. ACTIVE NAV LINK ──────────────────────────────────────────────────
+    var params = new URLSearchParams(window.location.search);
+    var curPage = params.get('page') || 'beranda';
+    document.querySelectorAll('.smast-nav-menu > li > a').forEach(function (a) {
+        try {
+            var ap = new URLSearchParams(new URL(a.href, window.location.href).search).get('page') || 'beranda';
+            if (ap === curPage) a.classList.add('active');
+        } catch (_) {}
+    });
+
+    // ─── 9. GALLERY FILTER ───────────────────────────────────────────────────
+    var filterBtns = document.querySelectorAll('.filter-btn');
+    var galleryItems = document.querySelectorAll('.gallery-item');
+    if (filterBtns.length && galleryItems.length) {
+        filterBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                filterBtns.forEach(function (b) { b.classList.remove('active'); });
                 this.classList.add('active');
-                
-                const filterValue = this.getAttribute('data-filter');
-                
-                galleryItems.forEach(item => {
-                    const itemCategory = item.getAttribute('data-category');
-                    
-                    if (filterValue === 'all' || filterValue === itemCategory) {
+                var val = this.getAttribute('data-filter');
+                galleryItems.forEach(function (item) {
+                    var cat = item.getAttribute('data-category');
+                    if (val === 'all' || val === cat) {
                         item.style.display = 'block';
-                        // Trigger fade-in
-                        setTimeout(() => {
-                            item.style.opacity = '1';
-                            item.style.transform = 'scale(1)';
-                        }, 50);
+                        setTimeout(function () { item.style.opacity = '1'; item.style.transform = 'scale(1)'; }, 30);
                     } else {
-                        item.style.opacity = '0';
-                        item.style.transform = 'scale(0.8)';
-                        setTimeout(() => {
-                            item.style.display = 'none';
-                        }, 300); // match CSS transitions
+                        item.style.opacity = '0'; item.style.transform = 'scale(0.85)';
+                        setTimeout(function () { item.style.display = 'none'; }, 280);
                     }
                 });
             });
         });
     }
 
-    // ==========================================
-    // 5. Lightbox Modal (For Gallery & Posters)
-    // ==========================================
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightbox-img');
-    const lightboxCaption = document.getElementById('lightbox-caption');
-    const lightboxClose = document.getElementById('lightbox-close');
-    
-    // Lightbox triggers for gallery
-    const galleryTriggers = document.querySelectorAll('.gallery-item');
-    // Lightbox triggers for posters
-    const posterTriggers = document.querySelectorAll('.poster-btn-zoom');
-    
-    function openLightbox(src, captionText) {
+    // ─── 10. LIGHTBOX ───────────────────────────────────────────────────────
+    var lightbox        = document.getElementById('lightbox');
+    var lightboxImg     = document.getElementById('lightbox-img');
+    var lightboxCaption = document.getElementById('lightbox-caption');
+    var lightboxClose   = document.getElementById('lightbox-close');
+
+    function openLB(src, caption) {
         if (!lightbox || !lightboxImg) return;
         lightboxImg.src = src;
-        if (lightboxCaption) {
-            lightboxCaption.textContent = captionText || '';
-        }
+        if (lightboxCaption) lightboxCaption.textContent = caption || '';
         lightbox.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Lock body scroll
+        document.body.style.overflow = 'hidden';
     }
-    
-    function closeLightbox() {
+    function closeLB() {
         if (!lightbox) return;
         lightbox.classList.remove('active');
-        document.body.style.overflow = 'auto'; // Restore scroll
+        document.body.style.overflow = '';
     }
-    
-    if (galleryTriggers.length > 0) {
-        galleryTriggers.forEach(item => {
-            item.addEventListener('click', function() {
-                const img = this.querySelector('img');
-                const caption = this.querySelector('.gallery-title');
-                if (img) {
-                    openLightbox(img.src, caption ? caption.textContent : '');
-                }
-            });
+
+    document.querySelectorAll('.gallery-item').forEach(function (item) {
+        item.addEventListener('click', function () {
+            var img = this.querySelector('img');
+            var cap = this.querySelector('.gallery-title');
+            if (img) openLB(img.src, cap ? cap.textContent : '');
         });
-    }
-    
-    if (posterTriggers.length > 0) {
-        posterTriggers.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation(); // prevent card click triggers
-                const card = this.closest('.poster-card');
-                const img = card.querySelector('.poster-img-wrapper img');
-                const caption = card.querySelector('h3');
-                if (img) {
-                    openLightbox(img.src, caption ? caption.textContent : '');
-                }
-            });
+    });
+
+    document.querySelectorAll('.poster-btn-zoom').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var card = this.closest('.poster-card');
+            var img  = card ? card.querySelector('img') : null;
+            var cap  = card ? card.querySelector('h3') : null;
+            if (img) openLB(img.src, cap ? cap.textContent : '');
         });
-        
-        // Also allow clicking poster image wrapper
-        const posterWrappers = document.querySelectorAll('.poster-img-wrapper');
-        posterWrappers.forEach(wrap => {
-            wrap.addEventListener('click', function() {
-                const img = this.querySelector('img');
-                const card = this.closest('.poster-card');
-                const caption = card.querySelector('h3');
-                if (img) {
-                    openLightbox(img.src, caption ? caption.textContent : '');
-                }
-            });
-        });
-    }
-    
-    if (lightboxClose) {
-        lightboxClose.addEventListener('click', closeLightbox);
-    }
-    
+    });
+
+    if (lightboxClose) lightboxClose.addEventListener('click', closeLB);
     if (lightbox) {
-        // Close lightbox on click outside the image
-        lightbox.addEventListener('click', function(e) {
-            if (e.target === lightbox) {
-                closeLightbox();
-            }
-        });
-        
-        // Close lightbox on Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeLightbox();
-            }
+        lightbox.addEventListener('click', function (e) { if (e.target === lightbox) closeLB(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLB(); });
+    }
+
+    // ─── 11. CONTACT FORM VALIDATION ────────────────────────────────────────
+    var form = document.getElementById('contact-form');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            var fields = ['nama', 'email', 'subjek', 'pesan'].map(function (id) { return document.getElementById(id); });
+            var ok = true;
+            fields.forEach(function (f) { if (f) f.style.borderColor = ''; });
+            if (fields[0] && !fields[0].value.trim()) { fields[0].style.borderColor = 'red'; ok = false; }
+            if (fields[1] && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields[1].value))) { fields[1].style.borderColor = 'red'; ok = false; }
+            if (fields[2] && !fields[2].value.trim()) { fields[2].style.borderColor = 'red'; ok = false; }
+            if (fields[3] && !fields[3].value.trim()) { fields[3].style.borderColor = 'red'; ok = false; }
+            if (!ok) { e.preventDefault(); alert('Mohon lengkapi seluruh isian formulir dengan benar.'); }
         });
     }
 
-    // ==========================================
-    // 6. Contact Form Validation & Animation
-    // ==========================================
-    const contactForm = document.getElementById('contact-form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-            const nama = document.getElementById('nama');
-            const email = document.getElementById('email');
-            const subjek = document.getElementById('subjek');
-            const pesan = document.getElementById('pesan');
-            
-            let hasError = false;
-            
-            // Clean simple feedback borders
-            [nama, email, subjek, pesan].forEach(input => {
-                if (input) input.style.borderColor = '';
-            });
-            
-            if (!nama.value.trim()) {
-                nama.style.borderColor = 'red';
-                hasError = true;
-            }
-            if (!email.value.trim() || !validateEmail(email.value)) {
-                email.style.borderColor = 'red';
-                hasError = true;
-            }
-            if (!subjek.value.trim()) {
-                subjek.style.borderColor = 'red';
-                hasError = true;
-            }
-            if (!pesan.value.trim()) {
-                pesan.style.borderColor = 'red';
-                hasError = true;
-            }
-            
-            if (hasError) {
-                e.preventDefault();
-                alert('Silakan isi seluruh formulir kontak dengan benar.');
-            }
-        });
-    }
-    
-    function validateEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    }
 });

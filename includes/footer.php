@@ -1,74 +1,129 @@
 <?php
-// includes/footer.php
-// Footer layout dengan widget informasi, link cepat, modal lightbox, dan pemuatan javascript
+// includes/footer.php — Footer SMAST (SMA Negeri 1 Kota Kediri)
 ?>
-<footer>
-    <div class="container">
-        <div class="footer-grid">
-            <div class="footer-col" style="grid-column: span 2;">
-                <h3 style="color: var(--primary); font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; margin-bottom: 15px;">
-                    <i class="fa-solid fa-mountain-sun"></i> Portal<span>Rejo</span>
-                </h3>
-                <p style="margin-bottom: 20px; font-size: 0.9rem;">
-                    Desa Wisata Tempurejo merupakan kawasan wisata pedesaan berbasis konservasi alam, keindahan perkebunan karet Alaska, kesegaran mata air alami Jembangan, dan penguatan ekonomi kreatif masyarakat lokal. Didukung penuh oleh Universitas Nusantara PGRI Kediri.
+
+<!-- ══ SMAST FOOTER ══════════════════════════════════════════════════════════ -->
+<footer class="smast-footer" role="contentinfo" aria-label="Footer SMA Negeri 1 Kota Kediri">
+    <div class="smast-container">
+        <div class="smast-footer-grid">
+
+            <!-- Col 1: Tentang Kami -->
+            <div>
+                <h4>Tentang Kami</h4>
+                <div class="smast-footer-brand">
+                    <?php if (file_exists('assets/images/Logo SMAST.png')): ?>
+                        <img src="assets/images/Logo SMAST.png" alt="Logo SMA Negeri 1 Kota Kediri" style="height:46px; width:auto; border-radius:8px;">
+                    <?php else: ?>
+                        <div class="brand-logo">S1</div>
+                    <?php endif; ?>
+                    <div>
+                        <div class="brand-name">SMA Negeri 1 Kota Kediri</div>
+                        <div class="brand-sub">Unggul dalam Prestasi, Berakhlak Mulia</div>
+                    </div>
+                </div>
+                <p class="smast-footer-desc">
+                    SMA Negeri 1 Kota Kediri (SMAST) adalah sekolah menengah atas negeri unggulan terakreditasi <strong style="color:var(--smast-gold);">A</strong> yang berkomitmen
+                    mencetak generasi intelektual, berkarakter unggul, dan berdaya saing global.
                 </p>
-                <div class="social-links">
-                    <a href="#" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="social-icon" title="Youtube"><i class="fab fa-youtube"></i></a>
-                    <a href="https://wa.me/6281234567890" class="social-icon" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                <div class="smast-footer-social" aria-label="Media Sosial SMA Negeri 1 Kota Kediri">
+                    <a href="https://www.instagram.com/smast_kediri_official/" aria-label="Instagram SMA Negeri 1 Kota Kediri" target="_blank" rel="noopener noreferrer" title="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://www.facebook.com/smastkediriofficial/" aria-label="Facebook SMA Negeri 1 Kota Kediri" target="_blank" rel="noopener noreferrer" title="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://www.facebook.com/smastkediriofficial/" aria-label="Twitter / X SMA Negeri 1 Kota Kediri" target="_blank" rel="noopener noreferrer" title="Twitter / X">
+                        <i class="fab fa-x-twitter"></i>
+                    </a>
+                    <a href="https://www.youtube.com/@smast_kediri_official" aria-label="YouTube SMA Negeri 1 Kota Kediri" target="_blank" rel="noopener noreferrer" title="YouTube">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                    <a href="https://wa.me/6281234567890" aria-label="WhatsApp SMA Negeri 1 Kota Kediri" target="_blank" rel="noopener noreferrer" title="WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
                 </div>
             </div>
-            
-            <div class="footer-col">
-                <h3>Navigasi</h3>
-                <ul class="footer-links">
-                    <li><a href="index.php?page=beranda"><i class="fas fa-chevron-right" style="font-size: 0.7rem; margin-right: 6px;"></i> Beranda</a></li>
-                    <li><a href="index.php?page=paket"><i class="fas fa-chevron-right" style="font-size: 0.7rem; margin-right: 6px;"></i> Paket Wisata</a></li>
-                    <li><a href="index.php?page=fasilitas"><i class="fas fa-chevron-right" style="font-size: 0.7rem; margin-right: 6px;"></i> Fasilitas</a></li>
-                    <li><a href="index.php?page=kontak"><i class="fas fa-chevron-right" style="font-size: 0.7rem; margin-right: 6px;"></i> Kontak Kami</a></li>
+
+            <!-- Col 2: Navigasi -->
+            <div>
+                <h4>Navigasi</h4>
+                <ul class="smast-footer-links">
+                    <li><a href="index.php?page=beranda"><i class="fas fa-chevron-right"></i> Beranda</a></li>
+                    <li><a href="index.php?page=profil"><i class="fas fa-chevron-right"></i> Profil Sekolah</a></li>
+                    <li><a href="index.php?page=fasilitas"><i class="fas fa-chevron-right"></i> Fasilitas</a></li>
+                    <li><a href="index.php?page=artikel"><i class="fas fa-chevron-right"></i> Berita &amp; Artikel</a></li>
+                    <li><a href="index.php?page=galeri"><i class="fas fa-chevron-right"></i> Galeri Foto</a></li>
+                    <li><a href="index.php?page=kontak"><i class="fas fa-chevron-right"></i> Kontak Kami</a></li>
                 </ul>
             </div>
 
-            <div class="footer-col">
-                <h3>Informasi</h3>
-                <ul class="footer-links">
-                    <li><a href="index.php?page=sejarah"><i class="fas fa-chevron-right" style="font-size: 0.7rem; margin-right: 6px;"></i> Sejarah Desa</a></li>
-                    <li><a href="index.php?page=artikel"><i class="fas fa-chevron-right" style="font-size: 0.7rem; margin-right: 6px;"></i> Artikel & Berita</a></li>
-                    <li><a href="index.php?page=galeri"><i class="fas fa-chevron-right" style="font-size: 0.7rem; margin-right: 6px;"></i> Galeri Foto</a></li>
-                    <li><a href="index.php?page=produk"><i class="fas fa-chevron-right" style="font-size: 0.7rem; margin-right: 6px;"></i> Produk Lokal</a></li>
+            <!-- Col 3: Layanan & Info -->
+            <div>
+                <h4>Layanan &amp; Info</h4>
+                <ul class="smast-footer-links">
+                    <li><a href="index.php?page=profil"><i class="fas fa-chevron-right"></i> Profil Sekolah</a></li>
+                    <li><a href="index.php?page=profil#visi-misi"><i class="fas fa-chevron-right"></i> Visi &amp; Misi (MUSTIKA)</a></li>
+                    <li><a href="index.php?page=profil#data-sekolah"><i class="fas fa-chevron-right"></i> Data Pokok Sekolah</a></li>
+                    <li><a href="index.php?page=profil#struktur"><i class="fas fa-chevron-right"></i> Struktur Organisasi</a></li>
+                    <li><a href="index.php?page=sejarah"><i class="fas fa-chevron-right"></i> Sejarah Sekolah</a></li>
+                    <li><a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer"><i class="fas fa-chevron-right"></i> Konsultasi WhatsApp</a></li>
                 </ul>
             </div>
-            
-            <div class="footer-col" style="grid-column: span 1.5;">
-                <h3>Hubungi Kami</h3>
-                <p style="margin-bottom: 10px; font-size: 0.85rem;"><i class="fas fa-map-marker-alt" style="color: var(--primary); margin-right: 8px;"></i> Jl. Raya PortalRejo No. 45, Kecamatan Semen, Kabupaten Kediri, Jawa Timur</p>
-                <p style="margin-bottom: 10px; font-size: 0.85rem;"><i class="fas fa-phone" style="color: var(--primary); margin-right: 8px;"></i> +62 812-3456-7890</p>
-                <p style="margin-bottom: 10px; font-size: 0.85rem;"><i class="fas fa-envelope" style="color: var(--primary); margin-right: 8px;"></i> info@portalrejo.desa.id</p>
+
+            <!-- Col 4: Hubungi Kami -->
+            <div class="smast-footer-contact">
+                <h4>Hubungi Kami</h4>
+                <p>
+                    <i class="fas fa-map-marker-alt"></i>
+                    Jalan Veteran No. 1, Kelurahan Bandar Lor, Kecamatan Mojoroto, Kota Kediri, Jawa Timur 64114
+                </p>
+                <p>
+                    <i class="fas fa-phone"></i>
+                    <a href="tel:+62354771829">+62 354 771829</a>
+                </p>
+                <p>
+                    <i class="fab fa-whatsapp"></i>
+                    <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer">+62 812-3456-7890</a>
+                </p>
+                <p>
+                    <i class="fas fa-envelope"></i>
+                    <a href="mailto:redaksi@smastkediri.sch.id">redaksi@smastkediri.sch.id</a>
+                </p>
+
+                <!-- Embedded Google Maps Akurat SMAN 1 Kediri (Jl. Veteran No. 1) -->
+                <div class="smast-footer-map">
+                    <iframe
+                        src="https://maps.google.com/maps?q=SMA+Negeri+1+Kediri,+Jl.+Veteran+No.1,+Bandar+Lor,+Kec.+Mojoroto,+Kota+Kediri,+Jawa+Timur+64114&t=&z=17&ie=UTF8&iwloc=&output=embed"
+                        width="100%" height="150" style="border:0; border-radius: 8px;"
+                        allowfullscreen="" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Lokasi Resmi SMA Negeri 1 Kota Kediri">
+                    </iframe>
+                </div>
             </div>
+
+        </div><!-- /.smast-footer-grid -->
+
+        <!-- Bottom Bar -->
+        <div class="smast-footer-bottom">
+            <p>&copy; <?php echo date('Y'); ?> <strong>SMA Negeri 1 Kota Kediri</strong>. Hak Cipta Dilindungi Undang-Undang.</p>
+            <span>Dibuat dengan <span style="color:#e74c3c;">&#10084;</span> untuk SMA Negeri 1 Kota Kediri</span>
         </div>
-        
-        <div class="footer-bottom">
-            <p>&copy; 2026 Desa Wisata Tempurejo. Hak Cipta Dilindungi.</p>
-            
-            <div class="unp-ppko-credits">
-                <span>Mitra Akademik:</span>
-                <strong style="color: var(--primary); font-size: 0.8rem;">UNP KEDIRI</strong>
-                <span style="color: var(--border-dark)">|</span>
-                <strong style="color: var(--accent); font-size: 0.8rem;">PPKO 2026 HimaBio Helianthus</strong>
-            </div>
-        </div>
+
     </div>
 </footer>
+<!-- / SMAST FOOTER -->
 
-<!-- Lightbox Modal untuk Zoom Gambar (Galeri & Poster) -->
-<div id="lightbox" class="lightbox">
-    <button id="lightbox-close" class="lightbox-close" aria-label="Tutup"><i class="fas fa-times"></i></button>
+<!-- Lightbox Modal -->
+<div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Tampilan gambar besar">
+    <button id="lightbox-close" class="lightbox-close" aria-label="Tutup">
+        <i class="fas fa-times"></i>
+    </button>
     <img id="lightbox-img" class="lightbox-content" src="" alt="Zoom Image">
     <div id="lightbox-caption" class="lightbox-caption"></div>
 </div>
 
 <!-- Main JS -->
-<script src="assets/js/main.js"></script>
+<script src="assets/js/main.js?v=<?php echo file_exists('assets/js/main.js') ? filemtime('assets/js/main.js') : '1'; ?>"></script>
 </body>
 </html>

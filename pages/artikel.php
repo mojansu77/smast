@@ -1,6 +1,6 @@
 <?php
 // pages/artikel.php
-// Halaman Daftar & Detail Artikel Desa PortalRejo
+// Halaman Berita & Artikel SMAN 1 Kediri
 
 $slug = isset($_GET['slug']) ? $_GET['slug'] : null;
 
@@ -65,12 +65,24 @@ else:
     // DAFTAR ARTIKEL (LIST VIEW)
     $artikel_list = get_artikel();
 ?>
-    <section class="section" style="padding-top: 130px;">
+    <!-- Page Hero -->
+    <section class="smast-page-hero">
         <div class="container">
-            <div class="section-title">
-                <h2>Kabar & <span>Artikel Desa</span></h2>
-                <p>Kumpulan berita terkini, wawasan konservasi, serta aktivitas pemberdayaan masyarakat Desa Wisata Tempurejo.</p>
+            <div class="smast-page-hero-content">
+                <div class="smast-breadcrumb">
+                    <a href="index.php">Beranda</a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Berita & Artikel</span>
+                </div>
+                <h1>Berita & <span>Artikel Sekolah</span></h1>
+                <p>Kumpulan berita terkini, pengumuman, dan artikel informatif seputar kegiatan akademik dan nonakademik SMAN 1 Kediri.</p>
             </div>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top: 60px;">
+        <div class="container">
+            <div>
             
             <div class="artikel-grid">
                 <?php foreach ($artikel_list as $art): ?>
