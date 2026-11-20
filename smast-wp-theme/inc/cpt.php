@@ -235,6 +235,35 @@ function smast_seed_default_galeri_terms() {
     }
 }
 
+/**
+ * Helper Universal untuk Mengambil Gambar Galeri / Berita (Featured / Editor / YouTube / Default)
+ */
+function smast_get_galeri_image( $post_id, $size = 'large' ) {
+    // 1. Gambar andalan (Featured Image)
+    $thumb = get_the_post_thumbnail_url( $post_id, $size );
+    if ( ! empty( $thumb ) ) {
+        return $thumb;
+    }
+
+    // 2. YouTube Thumbnail jika tipe Video
+    $video_url = get_post_meta( $post_id, '_galeri_video_url', true );
+    if ( ! empty( $video_url ) && function_exists( 'smast_get_yt_id' ) ) {
+        $yt_id = smast_get_yt_id( $video_url );
+        if ( ! empty( $yt_id ) ) {
+            return "https://img.youtube.com/vi/{$yt_id}/hqdefault.jpg";
+        }
+    }
+
+    // 3. Cari dari konten editor (tag <img>)
+    $content = get_post_field( 'post_content', $post_id );
+    if ( ! empty( $content ) && preg_match( '/<img[^>]+src=[\'"]([^\'"]+)[\'"]/i', $content, $m ) ) {
+        return $m[1];
+    }
+
+    // 4. Default fallback jika belum ada gambar
+    return get_template_directory_uri() . '/assets/images/Sekolah.jpg';
+}
+
 
 // ─── SUBMENU PENGATURAN KUTIPAN & TICKER DI WP ADMIN ─────────────────────────
 function smast_add_ticker_settings_submenu() {
@@ -499,6 +528,10 @@ function smast_galeri_meta_box_html($post) {
                 Tampilkan di Showcase Galeri Beranda (Halaman Utama)
             </label>
         </div>
+
+        <div style="margin-top: 14px; background: #e0f2fe; border: 1px solid #7dd3fc; border-radius: 6px; padding: 10px 14px; font-size: 13px; color: #0369a1; line-height: 1.5;">
+            <strong style="color: #0284c7;">💡 Tips Praktis:</strong> Foto otomatis ditampilkan di halaman Galeri &amp; Slider jika Anda memasangnya melalui kotak <strong>Gambar andalan</strong> di kanan bawah atau menyisipkannya langsung ke dalam editor teks di atas.
+        </div>
     </div>
     <?php
 }
@@ -526,6 +559,20 @@ function smast_galeri_save_meta($post_id) {
 
     if ($media_type === 'video' && !empty($video_url)) {
         wp_set_object_terms($post_id, 'video', 'kategori_galeri', true);
+    }
+
+    // Otomatis pasang Gambar Andalan jika pengguna menyisipkan foto di editor tetapi belum pasang di kotak Gambar Andalan
+    if ( ! has_post_thumbnail( $post_id ) ) {
+        $post_obj = get_post( $post_id );
+        if ( $post_obj && ! empty( $post_obj->post_content ) ) {
+            if ( preg_match( '/<img[^>]+src=[\'"]([^\'"]+)[\'"]/i', $post_obj->post_content, $m ) ) {
+                $img_src = $m[1];
+                $att_id  = attachment_url_to_postid( $img_src );
+                if ( $att_id ) {
+                    set_post_thumbnail( $post_id, $att_id );
+                }
+            }
+        }
     }
 }
 add_action('save_post_galeri', 'smast_galeri_save_meta');
@@ -829,11 +876,14 @@ add_action( 'save_post_post', 'smast_hero_slider_option_save_meta' );
 add_action( 'save_post_galeri', 'smast_hero_slider_option_save_meta' );
 
 /**
- * Kolom Admin untuk melihat status Hero Slider pada Berita & Galeri
+ * Kolom Admin untuk melihat Thumbnail & status Hero Slider pada Berita & Galeri
  */
 function smast_add_hero_slider_admin_column( $columns ) {
     $new_columns = array();
     foreach ( $columns as $key => $title ) {
+        if ( $key === 'title' ) {
+            $new_columns['smast_media_thumb'] = __( 'Foto / Media', 'smast' );
+        }
         $new_columns[$key] = $title;
         if ( $key === 'title' ) {
             $new_columns['hero_slider'] = __( 'Hero Slider', 'smast' );
@@ -845,6 +895,16 @@ add_filter( 'manage_post_posts_columns', 'smast_add_hero_slider_admin_column' );
 add_filter( 'manage_galeri_posts_columns', 'smast_add_hero_slider_admin_column' );
 
 function smast_render_hero_slider_admin_column( $column, $post_id ) {
+    if ( $column === 'smast_media_thumb' ) {
+        $img = smast_get_galeri_image( $post_id, 'thumbnail' );
+        $mtype = get_post_meta( $post_id, '_galeri_media_type', true ) ?: 'foto';
+        echo '<div style="width:58px; height:42px; border-radius:6px; overflow:hidden; background:#0b192c; position:relative; box-shadow:0 2px 6px rgba(0,0,0,0.15); display:inline-flex; align-items:center; justify-content:center;">';
+        echo '<img src="' . esc_url( $img ) . '" alt="" style="width:100%; height:100%; object-fit:cover;">';
+        if ( $mtype === 'video' ) {
+            echo '<span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); color:#ef4444; font-size:14px;"><i class="dashicons dashicons-video-alt3"></i></span>';
+        }
+        echo '</div>';
+    }
     if ( $column === 'hero_slider' ) {
         $in_hero = get_post_meta( $post_id, '_show_in_hero', true );
         if ( $in_hero === '1' ) {

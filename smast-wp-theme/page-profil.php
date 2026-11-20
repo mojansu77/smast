@@ -33,15 +33,24 @@ if ( empty( $principal_photo ) ) {
 <section class="smast-sambutan smast-section" id="sambutan">
     <div class="smast-container">
         <div class="smast-sambutan-grid">
-            <div class="smast-principal-photo-wrap smast-reveal-left">
-                <?php if ( ! empty( $principal_photo ) ) : ?>
-                    <img src="<?php echo esc_url( $principal_photo ); ?>" alt="<?php echo esc_attr( $principal_name ); ?>" class="smast-sambutan-img" style="width: 100%; border-radius: var(--smast-radius); box-shadow: var(--smast-shadow-md);">
-                <?php else : ?>
-                    <div class="smast-principal-photo-placeholder">
-                        <i class="fas fa-user-tie"></i>
-                        <span>Foto Kepala Sekolah</span>
+            <div class="smast-principal-col smast-reveal-left">
+                <div class="smast-principal-photo-wrap">
+                    <?php if ( ! empty( $principal_photo ) ) : ?>
+                        <img src="<?php echo esc_url( $principal_photo ); ?>" alt="<?php echo esc_attr( $principal_name ); ?>" class="smast-principal-photo">
+                    <?php else : ?>
+                        <div class="smast-principal-photo-placeholder">
+                            <i class="fas fa-user-tie"></i>
+                            <span>Foto Kepala Sekolah</span>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <div class="smast-principal-info">
+                    <div class="pi-avatar"><i class="fas fa-user-tie"></i></div>
+                    <div>
+                        <strong><?php echo esc_html( $principal_name ); ?></strong>
+                        <span>Kepala SMA Negeri 1 Kediri</span>
                     </div>
-                <?php endif; ?>
+                </div>
             </div>
             <div class="smast-sambutan-content smast-reveal-right">
                 <span class="section-badge"><i class="fas fa-quote-left"></i> Sambutan Kepala Sekolah</span>
@@ -51,13 +60,6 @@ if ( empty( $principal_photo ) ) {
                 <p class="sambutan-text">SMA Negeri 1 Kediri hadir sebagai lembaga pendidikan yang berkomitmen mencetak generasi penerus bangsa yang tidak hanya cerdas secara intelektual, namun juga berakhlak mulia dan berkarakter kuat. Kami senantiasa berupaya menghadirkan lingkungan belajar yang kondusif, inovatif, dan menyenangkan.</p>
                 <p class="sambutan-text">Dengan dukungan tenaga pendidik berpengalaman, sarana prasarana modern, dan kurikulum yang adaptif, kami siap mendampingi setiap peserta didik meraih potensi terbaiknya guna menyongsong masa depan yang gemilang.</p>
                 <p class="sambutan-text"><em>Wassalamu'alaikum Warahmatullahi Wabarakatuh.</em></p>
-                <div class="smast-principal-info">
-                    <div class="pi-avatar"><i class="fas fa-user-tie"></i></div>
-                    <div>
-                        <strong><?php echo esc_html( $principal_name ); ?></strong>
-                        <span>Kepala SMA Negeri 1 Kediri</span>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

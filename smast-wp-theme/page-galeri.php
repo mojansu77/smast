@@ -19,13 +19,46 @@ if ( ! function_exists( 'smast_get_yt_id' ) ) {
     }
 }
 
-$kategori_map = array(
-    'akademik'   => array( 'icon' => 'fa-graduation-cap', 'label' => 'Akademik' ),
-    'kesiswaan'  => array( 'icon' => 'fa-users',          'label' => 'Kesiswaan' ),
-    'prestasi'   => array( 'icon' => 'fa-trophy',         'label' => 'Prestasi' ),
-    'fasilitas'  => array( 'icon' => 'fa-building',       'label' => 'Fasilitas' ),
-    'kegiatan'   => array( 'icon' => 'fa-calendar-check', 'label' => 'Kegiatan' ),
-);
+// Ambil kategori galeri langsung dari WordPress taxonomy agar persis sama dengan opsi di WP Admin
+$kategori_map = array();
+$db_terms = get_terms( array(
+    'taxonomy'   => 'kategori_galeri',
+    'hide_empty' => false,
+) );
+
+if ( ! empty( $db_terms ) && ! is_wp_error( $db_terms ) ) {
+    foreach ( $db_terms as $t ) {
+        // Abaikan video di tab foto
+        if ( in_array( $t->slug, array( 'video', 'video-kegiatan' ), true ) ) {
+            continue;
+        }
+        $icon = 'fa-tag';
+        if ( stripos( $t->slug, 'akademik' ) !== false || stripos( $t->slug, 'prestasi' ) !== false ) {
+            $icon = 'fa-graduation-cap';
+        } elseif ( stripos( $t->slug, 'kesiswaan' ) !== false || stripos( $t->slug, 'ekskul' ) !== false ) {
+            $icon = 'fa-users';
+        } elseif ( stripos( $t->slug, 'sarana' ) !== false || stripos( $t->slug, 'fasilitas' ) !== false || stripos( $t->slug, 'lingkungan' ) !== false ) {
+            $icon = 'fa-school';
+        } elseif ( stripos( $t->slug, 'foto' ) !== false || stripos( $t->slug, 'dokumentasi' ) !== false ) {
+            $icon = 'fa-camera';
+        }
+
+        $kategori_map[ $t->slug ] = array(
+            'icon'  => $icon,
+            'label' => $t->name,
+        );
+    }
+}
+
+// Fallback jika belum ada terms dari database (persis seperti opsi di WP Admin)
+if ( empty( $kategori_map ) ) {
+    $kategori_map = array(
+        'akademik'  => array( 'icon' => 'fa-graduation-cap', 'label' => 'Akademik & Prestasi' ),
+        'kesiswaan' => array( 'icon' => 'fa-users',          'label' => 'Kesiswaan & Ekskul' ),
+        'fasilitas' => array( 'icon' => 'fa-school',         'label' => 'Sarana & Lingkungan' ),
+        'foto'      => array( 'icon' => 'fa-camera',         'label' => 'Foto Dokumentasi' ),
+    );
+}
 
 $current_cat = isset( $_GET['kategori'] ) ? sanitize_key( $_GET['kategori'] ) : '';
 $current_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'foto';
@@ -161,14 +194,20 @@ $current_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'foto';
         <?php else : ?>
             <!-- ─── TAB FOTO DOKUMENTASI ─── -->
 
-            <!-- Kategori Filters -->
+            <!-- Kategori Filters (Sesuai Opsi di WP Admin) -->
             <div class="gallery-filters">
                 <a href="<?php echo esc_url( remove_query_arg( 'kategori' ) ); ?>#galeri-content" class="filter-btn <?php echo empty( $current_cat ) ? 'active' : ''; ?>">
-                    <i class="fas fa-th"></i> Semua Kategori
+                    <i class="fas fa-th"></i> <span>Semua Kategori</span>
                 </a>
-                <?php foreach ( $kategori_map as $slug => $kat ) : ?>
-                    <a href="<?php echo esc_url( add_query_arg( 'kategori', $slug ) ); ?>#galeri-content" class="filter-btn <?php echo $current_cat === $slug ? 'active' : ''; ?>">
-                        <i class="fas <?php echo esc_attr( $kat['icon'] ); ?>"></i> <?php echo esc_html( $kat['label'] ); ?>
+                <?php foreach ( $kategori_map as $slug => $kat ) : 
+                    $is_active = ( $current_cat === $slug )
+                        || ( in_array( $slug, array( 'akademik', 'akademik-prestasi' ), true ) && in_array( $current_cat, array( 'akademik', 'prestasi', 'akademik-prestasi' ), true ) )
+                        || ( in_array( $slug, array( 'kesiswaan', 'kesiswaan-ekskul' ), true ) && in_array( $current_cat, array( 'kesiswaan', 'kesiswaan-ekskul' ), true ) )
+                        || ( in_array( $slug, array( 'fasilitas', 'sarana-lingkungan' ), true ) && in_array( $current_cat, array( 'fasilitas', 'sarana-lingkungan' ), true ) )
+                        || ( in_array( $slug, array( 'foto', 'foto-dokumentasi' ), true ) && in_array( $current_cat, array( 'foto', 'foto-dokumentasi' ), true ) );
+                ?>
+                    <a href="<?php echo esc_url( add_query_arg( 'kategori', $slug ) ); ?>#galeri-content" class="filter-btn <?php echo $is_active ? 'active' : ''; ?>">
+                        <i class="fas <?php echo esc_attr( $kat['icon'] ); ?>"></i> <span><?php echo esc_html( $kat['label'] ); ?></span>
                     </a>
                 <?php endforeach; ?>
             </div>
@@ -197,11 +236,23 @@ $current_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'foto';
                 );
 
                 if ( ! empty( $current_cat ) ) {
+                    if ( in_array( $current_cat, array( 'akademik', 'prestasi', 'akademik-prestasi' ), true ) ) {
+                        $query_slugs = array( 'akademik', 'prestasi', 'akademik-prestasi' );
+                    } elseif ( in_array( $current_cat, array( 'kesiswaan', 'kesiswaan-ekskul' ), true ) ) {
+                        $query_slugs = array( 'kesiswaan', 'kesiswaan-ekskul' );
+                    } elseif ( in_array( $current_cat, array( 'fasilitas', 'sarana-lingkungan' ), true ) ) {
+                        $query_slugs = array( 'fasilitas', 'sarana-lingkungan' );
+                    } elseif ( in_array( $current_cat, array( 'foto', 'foto-dokumentasi' ), true ) ) {
+                        $query_slugs = array( 'foto', 'foto-dokumentasi' );
+                    } else {
+                        $query_slugs = array( $current_cat );
+                    }
+
                     $galeri_args['tax_query'] = array(
                         array(
                             'taxonomy' => 'kategori_galeri',
                             'field'    => 'slug',
-                            'terms'    => $current_cat,
+                            'terms'    => $query_slugs,
                         ),
                     );
                 }
@@ -211,24 +262,21 @@ $current_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'foto';
                 if ( $galeri_query->have_posts() ) :
                     while ( $galeri_query->have_posts() ) :
                         $galeri_query->the_post();
-                        $img_url = get_the_post_thumbnail_url( get_the_ID(), 'large' );
-                        if ( empty( $img_url ) ) {
-                            continue;
-                        }
+                        $img_url = function_exists( 'smast_get_galeri_image' )
+                            ? smast_get_galeri_image( get_the_ID(), 'large' )
+                            : ( get_the_post_thumbnail_url( get_the_ID(), 'large' ) ?: get_template_directory_uri() . '/assets/images/Sekolah.jpg' );
                         $has_custom_galeri = true;
                         $terms = get_the_terms( get_the_ID(), 'kategori_galeri' );
-                        $cat_label = ( ! empty( $terms ) && ! is_wp_error( $terms ) ) ? $terms[0]->name : 'Kegiatan';
+                        $cat_label = ( ! empty( $terms ) && ! is_wp_error( $terms ) ) ? $terms[0]->name : 'Dokumentasi';
                 ?>
-                        <div class="gallery-item smast-reveal">
+                        <a href="<?php the_permalink(); ?>" class="smast-galeri-item smast-reveal" aria-label="<?php the_title_attribute(); ?>">
                             <img src="<?php echo esc_url( $img_url ); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy">
-                            <div class="gallery-overlay">
-                                <span class="gallery-category"><i class="fas fa-tag"></i> <?php echo esc_html( $cat_label ); ?></span>
-                                <h4 class="gallery-title"><?php the_title(); ?></h4>
-                                <button class="gallery-zoom" onclick="openLightbox('<?php echo esc_url( $img_url ); ?>', '<?php echo esc_attr( get_the_title() ); ?>')" title="Lihat Foto">
-                                    <i class="fas fa-expand-alt"></i>
-                                </button>
+                            <div class="smast-galeri-overlay">
+                                <span class="badge"><i class="fas fa-camera"></i> <?php echo esc_html( $cat_label ); ?></span>
+                                <h4><?php the_title(); ?></h4>
+                                <span class="galeri-meta-sub">Dokumentasi SMA Negeri 1 Kota Kediri</span>
                             </div>
-                        </div>
+                        </a>
                 <?php
                     endwhile;
                     wp_reset_postdata();

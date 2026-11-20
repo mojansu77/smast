@@ -72,9 +72,15 @@ if ( ! empty( $all_slide_posts ) ) {
     foreach ( $all_slide_posts as $p ) {
         $pid    = $p->ID;
         $ptype  = $p->post_type;
-        $bg_img = get_the_post_thumbnail_url( $pid, 'full' ) ?: '';
+        $bg_img = function_exists( 'smast_get_galeri_image' )
+            ? smast_get_galeri_image( $pid, 'full' )
+            : ( get_the_post_thumbnail_url( $pid, 'full' ) ?: '' );
 
         $badge_val = get_post_meta( $pid, '_hero_badge', true );
+        if ( ! empty( $badge_val ) ) {
+            // Bersihkan sufiks kategori jika tersimpan otomatis sebelumnya
+            $badge_val = trim( preg_replace( '/\s*—\s*(Tak Berkategori|Foto Dokumentasi|Dokumentasi Sekolah|Berita Harian|Warta Sekolah)/i', '', $badge_val ) );
+        }
         $tag_val   = get_post_meta( $pid, '_hero_tagline', true );
         $btn1_t    = get_post_meta( $pid, '_hero_btn1_text', true );
         $btn1_u    = get_post_meta( $pid, '_hero_btn1_url', true );
@@ -83,10 +89,8 @@ if ( ! empty( $all_slide_posts ) ) {
         $custom_title = get_post_meta( $pid, '_hero_custom_title', true );
 
         if ( $ptype === 'post' ) {
-            // Berita
-            $cats = get_the_category( $pid );
-            $cat_name = ! empty( $cats ) ? $cats[0]->name : 'Warta Sekolah';
-            $default_badge = 'Warta SMAN 1 Kediri — ' . $cat_name;
+            // Berita (Tanpa kategori di badge hero slider sesuai permintaan)
+            $default_badge = 'Warta SMAN 1 Kediri';
             $default_tag   = '"Kabar & Prestasi Terkini SMAN 1 Kota Kediri"';
             $default_desc  = has_excerpt( $pid ) ? get_the_excerpt( $pid ) : wp_trim_words( $p->post_content, 26, '...' );
             $default_btn1  = 'Baca Berita Lengkap';
@@ -94,20 +98,18 @@ if ( ! empty( $all_slide_posts ) ) {
             $default_btn2  = 'Kabar & Berita';
             $default_btn2_url = esc_url( home_url( '/berita' ) );
         } elseif ( $ptype === 'galeri' ) {
-            // Galeri
-            $terms = get_the_terms( $pid, 'kategori_galeri' );
-            $term_name = ( ! empty( $terms ) && ! is_wp_error( $terms ) ) ? $terms[0]->name : 'Dokumentasi Sekolah';
-            $default_badge = 'Galeri Dokumentasi — ' . $term_name;
+            // Galeri (Tanpa kategori di badge hero slider sesuai permintaan)
+            $default_badge = 'Galeri Dokumentasi';
             $default_tag   = '"Potret Prestasi & Kebanggaan SMAN 1 Kota Kediri"';
             $caption_val   = get_post_meta( $pid, '_galeri_caption', true );
             $default_desc  = ! empty( $caption_val ) ? $caption_val : ( has_excerpt( $pid ) ? get_the_excerpt( $pid ) : wp_trim_words( $p->post_content, 26, '...' ) );
-            $default_btn1  = 'Buka Galeri Foto';
-            $default_btn1_url = esc_url( home_url( '/galeri' ) );
-            $default_btn2  = 'Lihat Prestasi';
-            $default_btn2_url = esc_url( home_url( '/galeri?kategori=prestasi#galeri-content' ) );
+            $default_btn1  = 'Buka Dokumentasi';
+            $default_btn1_url = get_permalink( $pid );
+            $default_btn2  = 'Semua Galeri';
+            $default_btn2_url = esc_url( home_url( '/galeri' ) );
         } else {
             // CPT hero_slide
-            $default_badge = 'Terakreditasi A — Sekolah Unggulan Kota Kediri';
+            $default_badge = 'Terakreditasi A — SMAN 1 Kediri';
             $default_tag   = '"Unggul dalam Prestasi, Berakhlak Mulia"';
             $default_desc  = has_excerpt( $pid ) ? get_the_excerpt( $pid ) : wp_trim_words( $p->post_content, 26, '...' );
             $default_btn1  = 'Profil Sekolah';
@@ -182,12 +184,6 @@ if ( empty( $slides ) ) {
                 <div class="smast-hero-overlay" aria-hidden="true"></div>
                 <div class="smast-container">
                     <div class="smast-hero-content">
-                        <?php if ( ! empty( $s['badge'] ) ) : ?>
-                            <div class="smast-hero-badge">
-                                <i class="fas fa-star" aria-hidden="true"></i> <?php echo esc_html( $s['badge'] ); ?>
-                            </div>
-                        <?php endif; ?>
-
                         <h1 class="smast-hero-title" style="color: #FFFFFF !important; text-shadow: 0 3px 18px rgba(0,0,0,0.85);"><?php echo wp_kses_post( $s['title'] ); ?></h1>
 
                         <?php if ( ! empty( $s['tagline'] ) ) : ?>
@@ -808,18 +804,14 @@ if ( $has_custom_galeri ) :
                 $yt_id      = function_exists( 'smast_get_yt_id' ) ? smast_get_yt_id( $video_url ) : '';
                 $is_video   = ( 'video' === $media_type || ! empty( $yt_id ) );
 
-                $thumb = get_the_post_thumbnail_url( $post_id, 'large' );
-                if ( empty( $thumb ) && ! empty( $yt_id ) ) {
-                    $thumb = 'https://img.youtube.com/vi/' . $yt_id . '/hqdefault.jpg';
-                }
-                if ( empty( $thumb ) ) {
-                    continue;
-                }
+                $thumb = function_exists( 'smast_get_galeri_image' )
+                    ? smast_get_galeri_image( $post_id, 'large' )
+                    : ( get_the_post_thumbnail_url( $post_id, 'large' ) ?: get_template_directory_uri() . '/assets/images/Sekolah.jpg' );
 
                 $terms = get_the_terms( $post_id, 'kategori_galeri' );
                 $badge = ( ! empty( $terms ) && ! is_wp_error( $terms ) ) ? $terms[0]->name : ( $is_video ? 'Video Kegiatan' : 'Dokumentasi' );
 
-                $link_url = ( $is_video && ! empty( $video_url ) ) ? esc_url( $video_url ) : esc_url( home_url( '/galeri' ) );
+                $link_url = ( $is_video && ! empty( $video_url ) ) ? esc_url( $video_url ) : get_permalink( $post_id );
                 $target   = $is_video ? 'target="_blank" rel="noopener noreferrer"' : '';
             ?>
                 <a href="<?php echo $link_url; ?>" <?php echo $target; ?> class="smast-galeri-item smast-reveal <?php echo $is_video ? 'is-video-item' : ''; ?>" aria-label="<?php the_title_attribute(); ?>">
